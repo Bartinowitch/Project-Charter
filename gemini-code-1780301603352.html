@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCHURTER – Project Charter Master (Interactive Edition)</title>
+<style>
+  /* =========================================================
+     SCHURTER BRAND TOKENS
+     ========================================================= */
+  :root {
+    --s-blue-dark:    #1c3664;   /* primary header, nav, icon tiles */
+    --s-blue-mid:     #1a5276;   /* button bg, active states         */
+    --s-blue-light:   #2e86c1;   /* badges, tags, links, accents     */
+    --s-blue-pale:    #d6eaf8;   /* hover bg, light fills            */
+    --s-white:        #ffffff;
+    --s-bg:           #f4f6f8;   /* page background                  */
+    --s-bg-card:      #ffffff;   /* card / panel background          */
+    --s-text-primary: #1a1a2e;   /* body text                        */
+    --s-text-muted:   #5d6d7e;   /* secondary / meta text            */
+    --s-border:       #d5d8dc;   /* subtle borders                   */
+    --s-red:          #c0392b;   /* error, warning                   */
+    --s-green:        #1e8449;   /* success                          */
+
+    --s-font:         'Segoe UI', Calibri, Arial, sans-serif;
+    --s-font-mono:    'Consolas', 'Courier New', monospace;
+    --s-radius:       4px;       
+    --s-radius-lg:    8px;       
+    --s-shadow:       0 2px 6px rgba(28,54,100,.15);
+    --s-shadow-hover: 0 4px 14px rgba(28,54,100,.25);
+    --s-transition:   0.18s ease;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: var(--s-font);
+    font-size: 14px;
+    color: var(--s-text-primary);
+    background: var(--s-bg);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* =========================================================
+     HEADER WITH CI/CD BRANDING & DATA UTILITIES
+     ========================================================= */
+  .s-header {
+    background: var(--s-blue-dark);
+    color: var(--s-white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .s-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .s-header .s-logo-box {
+    background: transparent;
+    padding: 0 16px 0 0;
+    margin-right: 4px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid rgba(255,255,255,.2);
+  }
+  .s-header .s-logo-text {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    color: var(--s-white);
+    font-family: Arial, sans-serif;
+  }
+  .s-header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: var(--s-white);
+  }
+  .s-header-utils {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* =========================================================
+     SUB-NAV / CHAPTER TABS
+     ========================================================= */
+  .s-nav {
+    background: var(--s-white);
+    border-bottom: 2px solid var(--s-border);
+    display: flex;
+    gap: 2px;
+    padding: 0 20px;
+    overflow-x: auto;
+  }
+  .s-nav a {
+    display: inline-block;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--s-text-muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: color var(--s-transition), border-color var(--s-transition);
+    cursor: pointer;
+  }
+  .s-nav a:hover { color: var(--s-blue-mid); border-color: var(--s-blue-pale); }
+  .s-nav a.active { color: var(--s-blue-dark); border-color: var(--s-blue-dark); font-weight: 600; }
+
+  /* =========================================================
+     WORKSPACE SPLIT LAYOUT
+     ========================================================= */
+  .s-page {
+    display: flex;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+    gap: 24px;
+  }
+  .pane-left, .pane-right {
+    flex: 1;
+    width: 50%;
+  }
+  .pane-right-sticky {
+    position: sticky;
+    top: 100px;
+  }
+
+  .s-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--s-text-muted);
+    border-bottom: 1px solid var(--s-border);
+    padding-bottom: 6px;
+    margin-bottom: 20px;
+  }
+
+  .s-card {
+    background: var(--s-bg-card);
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius-lg);
+    padding: 20px;
+    box-shadow: var(--s-shadow);
+  }
+
+  /* =========================================================
+     FORM ELEMENTS & FORMATTING TOOLBAR
+     ========================================================= */
+  .s-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--s-text-primary);
+    margin-bottom: 5px;
+  }
+  .s-label span.req { color: var(--s-red); margin-left: 2px; }
+  .s-form-group { margin-bottom: 18px; }
+
+  .s-input {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius);
+    font-family: var(--s-font);
+    font-size: 13px;
+    color: var(--s-text-primary);
+    background: var(--s-white);
+    outline: none;
+  }
+  .s-input:focus { border-color: var(--s-blue-light); }
+
+  .editor-container {
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius);
+    background: var(--s-white);
+    overflow: hidden;
+  }
+  .editor-toolbar {
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--s-border);
+    padding: 4px 8px;
+    display: flex;
+    gap: 4px;
+  }
+  .editor-btn {
+    background: var(--s-white);
+    border: 1px solid var(--s-border);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--s-text-primary);
+    font-family: var(--s-font);
+  }
+  .editor-btn:hover { background: var(--s-blue-pale); color: var(--s-blue-dark); }
+  
+  .rich-textarea {
+    width: 100%;
+    min-height: 90px;
+    max-height: 250px;
+    padding: 8px 11px;
+    font-family: var(--s-font);
+    font-size: 13px;
+    color: var(--s-text-primary);
+    background: var(--s-white);
+    outline: none;
+    overflow-y: auto;
+  }
+  .rich-textarea:focus {
+    box-shadow: inset 0 0 0 1px var(--s-blue-light);
+  }
+
+  .s-alert-error {
+    display: none;
+    background: #fdedec;
+    border-left: 4px solid var(--s-red);
+    color: #78281f;
+    padding: 10px 14px;
+    border-radius: var(--s-radius);
+    font-size: 12px;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* Wizard Button Controls */
+  .wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--s-border);
+  }
+  .s-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: var(--s-radius);
+    font-family: var(--s-font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background var(--s-transition);
+    text-decoration: none;
+  }
+  .s-btn-primary { background: var(--s-blue-mid); color: var(--s-white); }
+  .s-btn-primary:hover { background: var(--s-blue-dark); }
+  .s-btn-secondary { background: var(--s-white); color: var(--s-blue-mid); border: 1px solid var(--s-blue-mid); }
+  .s-btn-secondary:hover { background: var(--s-blue-pale); }
+  .s-btn-header { background: rgba(255, 255, 255, 0.15); color: var(--s-white); font-size: 12px; padding: 5px 12px; border: 1px solid rgba(255,255,255,0.25); }
+  .s-btn-header:hover { background: rgba(255, 255, 255, 0.3); }
+  .s-btn:disabled { opacity: 0.4; cursor: not-allowed; background: var(--s-border); color: var(--s-text-muted); border: none; }
+
+  .chapter-block { display: none; }
+  .chapter-block.active { display: block; }
+
+  /* =========================================================
+     LEADERSHIP READY SHEET PREVIEW
+     ========================================================= */
+  .charter-sheet {
+    background: var(--s-white);
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius-lg);
+    box-shadow: var(--s-shadow-hover);
+    padding: 32px;
+    min-height: 650px;
+  }
+  .charter-header {
+    border-bottom: 3px solid var(--s-blue-dark);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .charter-header h2 {
+    font-size: 20px;
+    color: var(--s-blue-dark);
+    font-weight: 700;
+  }
+  .charter-header .meta {
+    font-size: 12px;
+    color: var(--s-text-muted);
+    margin-top: 2px;
+  }
+  
+  .s-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .s-badge-red { background: var(--s-red); color: var(--s-white); }
+  .s-badge-green { background: var(--s-green); color: var(--s-white); }
+
+  .doc-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .doc-row {
+    display: table-row;
+    border-bottom: 1px solid #f2f4f4;
+  }
+  .doc-row:last-child { border-bottom: none; }
+  .doc-cell {
+    display: table-cell;
+    padding: 12px 8px;
+    vertical-align: top;
+  }
+  .doc-cell.label-col {
+    font-weight: 700;
+    width: 28%;
+    color: var(--s-blue-dark);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .doc-cell.value-col {
+    font-size: 13px;
+    color: var(--s-text-primary);
+  }
+  .doc-cell.value-col ul {
+    padding-left: 18px;
+  }
+  .doc-cell.value-col .placeholder {
+    color: var(--s-text-muted);
+    font-style: italic;
+  }
+
+  .print-action-bar {
+    margin-top: 20px;
+    text-align: right;
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .s-header, .s-nav, .pane-left, .print-action-bar, .s-section-title { display: none !important; }
+    .s-page { display: block; padding: 0; max-width: 100%; }
+    .pane-right { width: 100%; display: block; }
+    .charter-sheet { border: none; box-shadow: none; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER WITH UTILITIES -->
+<header class="s-header">
+  <div class="s-header-left">
+    <div class="s-logo-box"><span class="s-logo-text">SCHURTER</span></div>
+    <h1>Project Charter Generator</h1>
+  </div>
+  <div class="s-header-utils">
+    <button class="s-btn s-btn-header" onclick="exportJSON()">Export JSON</button>
+    <button class="s-btn s-btn-header" onclick="document.getElementById('json_file_input').click()">Import JSON</button>
+    <input type="file" id="json_file_input" style="display:none;" accept=".json" onchange="importJSON(event)">
+  </div>
+</header>
+
+<!-- CHAPTER NAVIGATION TABS -->
+<nav class="s-nav" id="chapter_tabs">
+  <a class="active" onclick="switchChapter(1)">1. Name &amp; Desc</a>
+  <a onclick="switchChapter(2)">2. Problem &amp; Goal</a>
+  <a onclick="switchChapter(3)">3. Scope Boundaries</a>
+  <a onclick="switchChapter(4)">4. Governance &amp; Dates</a>
+  <a onclick="switchChapter(5)">5. Finance &amp; Risks</a>
+</nav>
+
+<div class="s-page">
+  
+  <!-- LEFT PANEL (INPUTS) -->
+  <div class="pane-left">
+    <div class="s-section-title">Definition Matrix</div>
+    
+    <div class="s-card">
+      
+      <!-- CHAPTER 1 -->
+      <div class="chapter-block active" id="ch_block_1">
+        <div class="s-form-group">
+          <label class="s-label">Project Name <span class="req">*</span></label>
+          <input type="text" id="p_name" class="s-input" placeholder="e.g., USL 0603 Automatic Assembly Line" oninput="syncToView()">
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Short Description <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_desc')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_desc')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_desc')">• List</button>
+            </div>
+            <div id="p_desc" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 2 -->
+      <div class="chapter-block" id="ch_block_2">
+        <div class="s-form-group">
+          <label class="s-label">Problem Statement / Business Case <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_problem')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_problem')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_problem')">• List</button>
+            </div>
+            <div id="p_problem" class="rich-textarea" contenteditable="true" oninput="validateInput('problem', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_problem">✕ <b>Vagueness Warning:</b> Avoid high-level abstractions like 'optimize processes'. State specific costs, bottlenecks, or defect levels.</div>
+        </div>
+        
+        <div class="s-form-group">
+          <label class="s-label">Measurable Objective / Target (S.M.A.R.T. KPI) <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_objective')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_objective')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_objective')">• List</button>
+            </div>
+            <div id="p_objective" class="rich-textarea" contenteditable="true" oninput="validateInput('objective', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_objective">✕ <b>Unmeasurable Criteria detected:</b> Management requires concrete metric indicators (%, CHF, or hard deadlines).</div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 3 -->
+      <div class="chapter-block" id="ch_block_3">
+        <div class="s-form-group">
+          <label class="s-label">IN Scope <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_in_scope')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_in_scope')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_in_scope')">• List</button>
+            </div>
+            <div id="p_in_scope" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+        
+        <div class="s-form-group">
+          <label class="s-label">Explicitly OUT of Scope <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_out_scope')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_out_scope')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_out_scope')">• List</button>
+            </div>
+            <div id="p_out_scope" class="rich-textarea" contenteditable="true" oninput="validateInput('scope', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_scope">✕ <b>Boundary Gap:</b> Explicit out-of-scope definition must be hardsigned to prevent scope creep.</div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 4 -->
+      <div class="chapter-block" id="ch_block_4">
+        <div class="s-form-group" style="display:flex; gap:12px;">
+          <div style="flex:1;">
+            <label class="s-label">Project Sponsor <span class="req">*</span></label>
+            <input type="text" id="p_sponsor" class="s-input" placeholder="Owner Role" oninput="syncToView()">
+          </div>
+          <div style="flex:1;">
+            <label class="s-label">Project Lead <span class="req">*</span></label>
+            <input type="text" id="p_lead" class="s-input" placeholder="Name" oninput="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Steering Committee (SteerCo) <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_steerco')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_steerco')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_steerco')">• List</button>
+            </div>
+            <div id="p_steerco" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Core Team Resources <span class="req">*</span></label>
+          <input type="text" id="p_team" class="s-input" placeholder="Departments / Functions" oninput="syncToView()">
+        </div>
+        <div class="s-form-group" style="display:flex; gap:12px;">
+          <div style="flex:1;">
+            <label class="s-label">Start Date <span class="req">*</span></label>
+            <input type="date" id="p_start" class="s-input" onchange="syncToView()">
+          </div>
+          <div style="flex:1;">
+            <label class="s-label">End Date <span class="req">*</span></label>
+            <input type="date" id="p_end" class="s-input" onchange="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Key Milestones <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_milestones')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_milestones')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_milestones')">• List</button>
+            </div>
+            <div id="p_milestones" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 5 -->
+      <div class="chapter-block" id="ch_block_5">
+        <div class="s-flex-row s-form-group" style="display:flex; gap:12px;">
+          <div style="flex:1;">
+            <label class="s-label">Financial Budget <span class="req">*</span></label>
+            <input type="text" id="p_budget" class="s-input" placeholder="e.g., 50'000 CHF" oninput="syncToView()">
+          </div>
+          <div style="flex:1;">
+            <label class="s-label">Internal Effort Allocation</label>
+            <input type="text" id="p_internal" class="s-input" placeholder="e.g., 0.3 FTE" oninput="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Top Risks &amp; Countermeasures <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_risks')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_risks')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_risks')">• List</button>
+            </div>
+            <div id="p_risks" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Success Criteria / Definition of Done <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold', 'p_success')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic', 'p_success')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList', 'p_success')">• List</button>
+            </div>
+            <div id="p_success" class="rich-textarea" contenteditable="true" oninput="validateInput('success', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_success">✕ <b>Binary Check required:</b> Criteria must be hardsigned as verifiable milestones (e.g. 'CE Mark certified', not 'Users are happy').</div>
+        </div>
+      </div>
+
+      <!-- WIZARD BUTTON NAVIGATION CONTROLS -->
+      <div class="wizard-actions">
+        <button class="s-btn s-btn-secondary" id="btn_back" onclick="navigateStep(-1)">Back</button>
+        <button class="s-btn s-btn-primary" id="btn_next" onclick="navigateStep(1)">Next</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL (PREVIEW) -->
+  <div class="pane-right">
+    <div class="pane-right-sticky">
+      <div class="s-section-title">Leadership Document View</div>
+      <div class="charter-sheet">
+        <div class="charter-header">
+          <div class="header-main">
+            <h2 id="view_title">PROJECT CHARTER</h2>
+            <div class="meta">SCHURTER AG &middot; Authorization: <span id="meta_status" style="font-weight:700; color:var(--s-red);">Pending</span></div>
+          </div>
+          <span class="s-badge s-badge-red" id="badge_status">Incomplete</span>
+        </div>
+
+        <div class="doc-table">
+          <div class="doc-row"><div class="doc-cell label-col">Description</div><div class="doc-cell value-col" id="view_desc"><span class="placeholder">Please configure chapter data matrix inputs...</span></div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Business Case</div><div class="doc-cell value-col" id="view_problem">-</div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Target Objective</div><div class="doc-cell value-col" id="view_objective" style="font-weight:600; color:var(--s-blue-dark);">-</div></div>
+          <div class="doc-row"><div class="doc-cell label-col">In Scope</div><div class="doc-cell value-col" id="view_in_scope">-</div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Out of Scope</div><div class="doc-cell value-col" id="view_out_scope" style="color:var(--s-red);">-</div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Governance</div><div class="doc-cell value-col">
+            <strong>Sponsor:</strong> <span id="view_sponsor">-</span><br>
+            <strong>Project Lead:</strong> <span id="view_lead">-</span><br>
+            <strong>Steering Committee:</strong> <div id="view_steerco" style="display:inline-block; vertical-align:top;">-</div><br>
+            <strong>Resources:</strong> <span id="view_team">-</span>
+          </div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Timeline</div><div class="doc-cell value-col"><strong>Duration:</strong> <span id="view_start">-</span> to <span id="view_end">-</span><br><br><strong>Milestones:</strong><br><div id="view_milestones">-</div></div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Budget</div><div class="doc-cell value-col"><strong>Finances:</strong> <span id="view_budget">-</span><br><strong>Internal Commitment:</strong> <span id="view_internal">-</span></div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Risk Matrix</div><div class="doc-cell value-col" id="view_risks">-</div></div>
+          <div class="doc-row"><div class="doc-cell label-col">Success Metrics</div><div class="doc-cell value-col" id="view_success" style="font-weight:600; color:var(--s-green);">-</div></div>
+        </div>
+      </div>
+      <div class="print-action-bar">
+        <button class="s-btn s-btn-primary" onclick="window.print()">Export / Save as PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let activeChapter = 1;
+  const maxChapters = 5;
+
+  function switchChapter(chapterId) {
+    activeChapter = chapterId;
+    let tabs = document.querySelectorAll('#chapter_tabs a');
+    tabs.forEach((tab, idx) => { if (idx + 1 === chapterId) tab.classList.add('active'); else tab.classList.remove('active'); });
+    let blocks = document.querySelectorAll('.chapter-block');
+    blocks.forEach((block, idx) => { if (idx + 1 === chapterId) block.classList.add('active'); else block.classList.remove('active'); });
+    
+    document.getElementById('btn_back').disabled = (activeChapter === 1);
+    document.getElementById('btn_next').innerText = (activeChapter === maxChapters) ? "Finish" : "Next";
+  }
+
+  function navigateStep(direction) {
+    let target = activeChapter + direction;
+    if (target >= 1 && target <= maxChapters) {
+      switchChapter(target);
+    }
+  }
+
+  function execCmd(command, elementId) {
+    document.execCommand(command, false, null);
+    document.getElementById(elementId).focus();
+    syncToView();
+  }
+
+  const fluffPhrases = ['optimize', 'process improvement', 'make better', 'improve efficiency', 'enhance quality'];
+
+  function validateInput(field, htmlContent) {
+    let text = htmlContent.replace(/<[^>]*>/g, '').trim();
+    let errorBox = document.getElementById(`val_${field}`);
+    let triggerAlert = false;
+
+    if (text.length > 0 && text.length < 15) triggerAlert = true;
+    let detectedFluff = fluffPhrases.some(phrase => text.toLowerCase().includes(phrase));
+    let detectedMetrics = /\d/.test(text);
+
+    if (field === 'objective' && detectedFluff && !detectedMetrics && text.length > 0) triggerAlert = true;
+    if (field === 'scope' && text.length > 0 && text.length < 10) triggerAlert = true;
+
+    if (triggerAlert) errorBox.style.display = 'block'; else errorBox.style.display = 'none';
+    syncToView();
+  }
+
+  function syncToView() {
+    const name = document.getElementById('p_name').value;
+    const desc = document.getElementById('p_desc').innerHTML;
+    const problem = document.getElementById('p_problem').innerHTML;
+    const objective = document.getElementById('p_objective').innerHTML;
+    const inScope = document.getElementById('p_in_scope').innerHTML;
+    const outScope = document.getElementById('p_out_scope').innerHTML;
+    const sponsor = document.getElementById('p_sponsor').value;
+    const lead = document.getElementById('p_lead').value;
+    const steerco = document.getElementById('p_steerco').innerHTML;
+    const team = document.getElementById('p_team').value;
+    const start = document.getElementById('p_start').value;
+    const end = document.getElementById('p_end').value;
+    const milestones = document.getElementById('p_milestones').innerHTML;
+    const budget = document.getElementById('p_budget').value;
+    const internal = document.getElementById('p_internal').value;
+    const risks = document.getElementById('p_risks').innerHTML;
+    const success = document.getElementById('p_success').innerHTML;
+
+    document.getElementById('view_title').innerText = name.trim() ? "PROJECT CHARTER: " + name.toUpperCase() : "PROJECT CHARTER";
+    
+    let descTarget = document.getElementById('view_desc');
+    if (desc.replace(/<[^>]*>/g, '').trim().length > 0) descTarget.innerHTML = desc; else descTarget.innerHTML = '<span class="placeholder">Please configure chapter data matrix inputs...</span>';
+
+    document.getElementById('view_problem').innerHTML = problem.trim() && problem !== '<br>' ? problem : "-";
+    document.getElementById('view_objective').innerHTML = objective.trim() && objective !== '<br>' ? objective : "-";
+    document.getElementById('view_in_scope').innerHTML = inScope.trim() && inScope !== '<br>' ? inScope : "-";
+    document.getElementById('view_out_scope').innerHTML = outScope.trim() && outScope !== '<br>' ? outScope : "-";
+    document.getElementById('view_sponsor').innerText = sponsor.trim() ? sponsor : "-";
+    document.getElementById('view_lead').innerText = lead.trim() ? lead : "-";
+    document.getElementById('view_steerco').innerHTML = steerco.trim() && steerco !== '<br>' ? steerco : "-";
+    document.getElementById('view_team').innerText = team.trim() ? team : "-";
+    document.getElementById('view_start').innerText = start ? start : "-";
+    document.getElementById('view_end').innerText = end ? end : "-";
+    document.getElementById('view_milestones').innerHTML = milestones.trim() && milestones !== '<br>' ? milestones : "-";
+    document.getElementById('view_budget').innerText = budget.trim() ? budget : "-";
+    document.getElementById('view_internal').innerText = internal.trim() ? internal : "-";
+    document.getElementById('view_risks').innerHTML = risks.trim() && risks !== '<br>' ? risks : "-";
+    document.getElementById('view_success').innerHTML = success.trim() && success !== '<br>' ? success : "-";
+
+    const textFields = [desc, problem, objective, inScope, outScope, steerco, milestones, risks, success];
+    const stringFields = [name, sponsor, lead, team, start, end, budget];
+
+    let allTextsValid = textFields.every(t => t.replace(/<[^>]*>/g, '').trim().length > 0);
+    let allStringsValid = stringFields.every(s => s.trim().length > 0);
+
+    const badge = document.getElementById('badge_status');
+    const statusMeta = document.getElementById('meta_status');
+
+    if (allTextsValid && allStringsValid) {
+      badge.innerText = "Ready"; badge.className = "s-badge s-badge-green";
+      statusMeta.innerText = "Approved for Leadership Board"; statusMeta.style.color = "var(--s-green)";
+    } else {
+      badge.innerText = "Incomplete"; badge.className = "s-badge s-badge-red";
+      statusMeta.innerText = "Pending Validation"; statusMeta.style.color = "var(--s-red)";
+    }
+  }
+
+  function exportJSON() {
+    const dataMatrix = {
+      projectName: document.getElementById('p_name').value,
+      description: document.getElementById('p_desc').innerHTML,
+      problemStatement: document.getElementById('p_problem').innerHTML,
+      objective: document.getElementById('p_objective').innerHTML,
+      inScope: document.getElementById('p_in_scope').innerHTML,
+      outScope: document.getElementById('p_out_scope').innerHTML,
+      sponsor: document.getElementById('p_sponsor').value,
+      projectLead: document.getElementById('p_lead').value,
+      steeringCommittee: document.getElementById('p_steerco').innerHTML,
+      coreTeam: document.getElementById('p_team').value,
+      startDate: document.getElementById('p_start').value,
+      endDate: document.getElementById('p_end').value,
+      milestones: document.getElementById('p_milestones').innerHTML,
+      budget: document.getElementById('p_budget').value,
+      internalEffort: document.getElementById('p_internal').value,
+      risks: document.getElementById('p_risks').innerHTML,
+      successCriteria: document.getElementById('p_success').innerHTML
+    };
+
+    const jsonString = JSON.stringify(dataMatrix, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const link = document.createElement("a");
+    
+    const timestamp = new Date().toISOString().substring(0, 10);
+    link.download = `Project_Charter_${dataMatrix.projectName.replace(/\s+/g, '_') || 'Draft'}_${timestamp}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const matrix = JSON.parse(e.target.result);
+        
+        if(matrix.projectName !== undefined) document.getElementById('p_name').value = matrix.projectName;
+        if(matrix.description !== undefined) document.getElementById('p_desc').innerHTML = matrix.description;
+        if(matrix.problemStatement !== undefined) document.getElementById('p_problem').innerHTML = matrix.problemStatement;
+        if(matrix.objective !== undefined) document.getElementById('p_objective').innerHTML = matrix.objective;
+        if(matrix.inScope !== undefined) document.getElementById('p_in_scope').innerHTML = matrix.inScope;
+        if(matrix.outScope !== undefined) document.getElementById('p_out_scope').innerHTML = matrix.outScope;
+        if(matrix.sponsor !== undefined) document.getElementById('p_sponsor').value = matrix.sponsor;
+        if(matrix.projectLead !== undefined) document.getElementById('p_lead').value = matrix.projectLead;
+        if(matrix.steeringCommittee !== undefined) document.getElementById('p_steerco').innerHTML = matrix.steeringCommittee;
+        if(matrix.coreTeam !== undefined) document.getElementById('p_team').value = matrix.coreTeam;
+        if(matrix.startDate !== undefined) document.getElementById('p_start').value = matrix.startDate;
+        if(matrix.endDate !== undefined) document.getElementById('p_end').value = matrix.endDate;
+        if(matrix.milestones !== undefined) document.getElementById('p_milestones').innerHTML = matrix.milestones;
+        if(matrix.budget !== undefined) document.getElementById('p_budget').value = matrix.budget;
+        if(matrix.internalEffort !== undefined) document.getElementById('p_internal').value = matrix.internalEffort;
+        if(matrix.risks !== undefined) document.getElementById('p_risks').innerHTML = matrix.risks;
+        if(matrix.successCriteria !== undefined) document.getElementById('p_success').innerHTML = matrix.successCriteria;
+
+        validateInput('problem', document.getElementById('p_problem').innerHTML);
+        validateInput('objective', document.getElementById('p_objective').innerHTML);
+        validateInput('scope', document.getElementById('p_out_scope').innerHTML);
+        validateInput('success', document.getElementById('p_success').innerHTML);
+        
+        switchChapter(1);
+        syncToView();
+      } catch (err) {
+        alert("Error parsing JSON file. Please ensure it is a valid export package.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  switchChapter(1);
+</script>
+</body>
+</html>
