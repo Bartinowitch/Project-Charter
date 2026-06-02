@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCHURTER – Project Charter Generator</title>
+<style>
+  /* =========================================================
+     SCHURTER BRAND TOKENS  (from schurter-brand-guide.html)
+     ========================================================= */
+  :root {
+    --s-blue-dark:    #1c3664;
+    --s-blue-mid:     #1a5276;
+    --s-blue-light:   #2e86c1;
+    --s-blue-pale:    #d6eaf8;
+    --s-white:        #ffffff;
+    --s-bg:           #f4f6f8;
+    --s-bg-card:      #ffffff;
+    --s-text-primary: #1a1a2e;
+    --s-text-muted:   #5d6d7e;
+    --s-border:       #d5d8dc;
+    --s-red:          #c0392b;
+    --s-green:        #1e8449;
+    --s-font:         'Segoe UI', Calibri, Arial, sans-serif;
+    --s-font-mono:    'Consolas', 'Courier New', monospace;
+    --s-radius:       4px;
+    --s-radius-lg:    8px;
+    --s-shadow:       0 2px 6px rgba(28,54,100,.15);
+    --s-shadow-hover: 0 4px 14px rgba(28,54,100,.25);
+    --s-transition:   0.18s ease;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--s-font);
+    font-size: 14px;
+    color: var(--s-text-primary);
+    background: var(--s-bg);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* =========================================================
+     HEADER  — brand guide spec
+     ========================================================= */
+  .s-header {
+    background: var(--s-blue-dark);
+    color: var(--s-white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .s-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .s-logo-box {
+    padding: 0 16px 0 0;
+    margin-right: 4px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid rgba(255,255,255,.2);
+  }
+  /* Text logo (no image) — same visual weight as brand guide img logo */
+  .s-logo-text {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    color: var(--s-white);
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+  }
+  /* Brand guide: h1 has border-left separator, 15px/600 */
+  .s-header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: var(--s-white);
+    border-left: 1px solid rgba(255,255,255,.3);
+    padding-left: 12px;
+    margin-left: 12px;
+  }
+  .s-header-utils {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* =========================================================
+     NAV TABS  — brand guide spec (10px padding-y)
+     ========================================================= */
+  .s-nav {
+    background: var(--s-white);
+    border-bottom: 2px solid var(--s-border);
+    display: flex;
+    gap: 2px;
+    padding: 0 20px;
+    overflow-x: auto;
+  }
+  .s-nav a {
+    display: inline-block;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--s-text-muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: color var(--s-transition), border-color var(--s-transition);
+    cursor: pointer;
+  }
+  .s-nav a:hover  { color: var(--s-blue-mid); border-color: var(--s-blue-pale); }
+  .s-nav a.active { color: var(--s-blue-dark); border-color: var(--s-blue-dark); font-weight: 600; }
+
+  /* =========================================================
+     LAYOUT
+     ========================================================= */
+  .s-page {
+    display: flex;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+    gap: 24px;
+  }
+  .pane-left, .pane-right { flex: 1; width: 50%; }
+  .pane-right-sticky { position: sticky; top: 72px; }
+
+  /* Brand guide layout helper — replaces inline style="display:flex;gap:12px" */
+  .s-row       { display: flex; gap: 12px; }
+  .s-row > div { flex: 1; }
+
+  /* Brand guide: section-title spec */
+  .s-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--s-text-muted);
+    border-bottom: 1px solid var(--s-border);
+    padding-bottom: 6px;
+    margin-bottom: 20px;
+  }
+
+  /* Brand guide: .s-card spec */
+  .s-card {
+    background: var(--s-bg-card);
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius-lg);
+    padding: 20px;
+    box-shadow: var(--s-shadow);
+    transition: box-shadow var(--s-transition);
+  }
+
+  /* =========================================================
+     FORM ELEMENTS  — brand guide spec
+     ========================================================= */
+  .s-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--s-text-primary);
+    margin-bottom: 5px;
+  }
+  .s-label span.req { color: var(--s-red); margin-left: 2px; }
+  .s-form-group { margin-bottom: 18px; }
+
+  /* Brand guide: .s-input — uses var(--s-font), focus box-shadow */
+  .s-input {
+    width: 100%;
+    padding: 8px 11px;
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius);
+    font-family: var(--s-font);
+    font-size: 13px;
+    color: var(--s-text-primary);
+    background: var(--s-white);
+    outline: none;
+    transition: border-color var(--s-transition), box-shadow var(--s-transition);
+  }
+  .s-input:focus {
+    border-color: var(--s-blue-light);
+    box-shadow: 0 0 0 3px rgba(46,134,193,.18);
+  }
+
+  /* Rich editor */
+  .editor-container {
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius);
+    background: var(--s-white);
+    overflow: hidden;
+    transition: border-color var(--s-transition), box-shadow var(--s-transition);
+  }
+  .editor-container:focus-within {
+    border-color: var(--s-blue-light);
+    box-shadow: 0 0 0 3px rgba(46,134,193,.18);
+  }
+  .editor-toolbar {
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--s-border);
+    padding: 4px 8px;
+    display: flex;
+    gap: 4px;
+  }
+  /* Brand guide: .editor-btn mirrors .s-btn-ghost style */
+  .editor-btn {
+    background: var(--s-white);
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius);
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--s-text-primary);
+    font-family: var(--s-font);
+    transition: background var(--s-transition), color var(--s-transition);
+  }
+  .editor-btn:hover { background: var(--s-blue-pale); color: var(--s-blue-dark); }
+
+  .rich-textarea {
+    width: 100%;
+    min-height: 90px;
+    max-height: 250px;
+    padding: 8px 11px;
+    font-family: var(--s-font);
+    font-size: 13px;
+    color: var(--s-text-primary);
+    background: var(--s-white);
+    outline: none;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+
+  /* Brand guide: .s-alert-error */
+  .s-alert-error {
+    display: none;
+    background: #fdedec;
+    border-left: 4px solid var(--s-red);
+    color: #78281f;
+    padding: 10px 14px;
+    border-radius: var(--s-radius);
+    font-size: 13px;
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* =========================================================
+     BUTTONS  — brand guide spec (complete set)
+     ========================================================= */
+  .s-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: var(--s-radius);
+    font-family: var(--s-font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background var(--s-transition), box-shadow var(--s-transition);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .s-btn-primary           { background: var(--s-blue-mid); color: var(--s-white); }
+  .s-btn-primary:hover     { background: var(--s-blue-dark); box-shadow: var(--s-shadow); }
+  .s-btn-secondary         { background: var(--s-white); color: var(--s-blue-mid); border: 1px solid var(--s-blue-mid); }
+  .s-btn-secondary:hover   { background: var(--s-blue-pale); }
+  .s-btn-ghost             { background: transparent; color: var(--s-blue-light); border: 1px solid var(--s-border); }
+  .s-btn-ghost:hover       { background: var(--s-bg); }
+  /* Header variant — semi-transparent on dark bg */
+  .s-btn-header            { background: rgba(255,255,255,.15); color: var(--s-white); font-size: 12px; padding: 5px 12px; border: 1px solid rgba(255,255,255,.25); }
+  .s-btn-header:hover      { background: rgba(255,255,255,.3); }
+  .s-btn:disabled          { opacity: 0.4; cursor: not-allowed; background: var(--s-border); color: var(--s-text-muted); border: none; box-shadow: none; }
+
+  /* Wizard nav */
+  .wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--s-border);
+  }
+
+  /* =========================================================
+     CHAPTER BLOCKS
+     ========================================================= */
+  .chapter-block        { display: none; }
+  .chapter-block.active { display: block; }
+
+  /* =========================================================
+     PREVIEW CHARTER SHEET
+     ========================================================= */
+  .charter-sheet {
+    background: var(--s-white);
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius-lg);
+    box-shadow: var(--s-shadow-hover);
+    padding: 32px;
+    min-height: 650px;
+  }
+  .charter-header {
+    border-bottom: 3px solid var(--s-blue-dark);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  /* Title: brand guide doc-table label style elevated to h2 */
+  .charter-header h2 {
+    font-family: var(--s-font);
+    color: var(--s-blue-dark);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+  .charter-prefix-light { font-weight: 400; color: var(--s-text-muted); }
+  .title-divider        { color: var(--s-border); margin: 0 8px; font-weight: 400; }
+  .charter-header .meta {
+    font-size: 12px;
+    color: var(--s-text-muted);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .meta-sep { color: var(--s-border); }
+
+  /* Status dropdown */
+  /* Custom status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px 2px 10px;
+    border-radius: var(--s-radius);
+    border: 1px solid;
+    font-family: var(--s-font);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: opacity var(--s-transition);
+  }
+  .status-badge:hover { opacity: .85; }
+  .status-badge .badge-arrow { font-size: 9px; opacity: .7; }
+  .status-badge.is-approved { background: #eafaf1; color: var(--s-green); border-color: var(--s-green); }
+  .status-badge.is-draft    { background: #fef5ec; color: #d35400;        border-color: #d35400; }
+  .status-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--s-white);
+    border: 1px solid var(--s-border);
+    border-radius: var(--s-radius);
+    box-shadow: var(--s-shadow-hover);
+    z-index: 50;
+    min-width: 190px;
+    overflow: hidden;
+  }
+  .status-dropdown.open { display: block; }
+  .status-option {
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: background var(--s-transition);
+  }
+  .status-option:hover        { background: var(--s-bg); }
+  .status-option.opt-approved { color: var(--s-green); }
+  .status-option.opt-draft    { color: #d35400; }
+  .opt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .opt-approved .opt-dot { background: var(--s-green); }
+  .opt-draft    .opt-dot { background: #d35400; }
+
+  /* Brand guide: .s-table spec applied to doc-table */
+  .doc-table          { width: 100%; border-collapse: collapse; }
+  .doc-row            { border-bottom: 1px solid var(--s-border); }
+  .doc-row:last-child { border-bottom: none; }
+  .doc-row:hover .doc-cell { background: var(--s-blue-pale); }
+
+  .doc-cell { padding: 10px 8px; vertical-align: top; }
+
+  /* Brand guide: th style → label-col */
+  .doc-cell.label-col {
+    background: var(--s-blue-dark);
+    color: var(--s-white);
+    font-family: var(--s-font);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    width: 26%;
+    padding: 9px 12px;
+  }
+  /* Hover should not override the label column's brand color */
+  .doc-row:hover .doc-cell.label-col { background: var(--s-blue-dark); }
+
+  /* Brand guide: td style → value-col */
+  .doc-cell.value-col {
+    font-family: var(--s-font);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--s-text-primary);
+    padding: 9px 12px;
+  }
+  /* Preserve explicit formatting from contenteditable / imported HTML */
+  .doc-cell.value-col b,
+  .doc-cell.value-col strong { font-weight: 600; }
+  .doc-cell.value-col i,
+  .doc-cell.value-col em     { font-style: italic; }
+  .doc-cell.value-col ul     { padding-left: 18px; }
+  .doc-cell.value-col li     { margin-bottom: 2px; }
+  .doc-cell.value-col p      { margin-bottom: 4px; }
+  .doc-cell.value-col p:last-child { margin-bottom: 0; }
+  .doc-cell.value-col .placeholder {
+    color: var(--s-text-muted);
+    font-style: italic;
+  }
+
+  /* Brand guide: .s-badge for status inline use */
+  .s-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--s-radius);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .s-badge-green { background: var(--s-green); color: var(--s-white); }
+  .s-badge-red   { background: var(--s-red);   color: var(--s-white); }
+  .s-badge-light { background: var(--s-blue-pale); color: var(--s-blue-dark); }
+
+  .print-action-bar { margin-top: 16px; text-align: right; }
+
+  /* =========================================================
+     PRINT
+     ========================================================= */
+  @media print {
+    body {
+      background: #fff;
+      font-variant-ligatures: none;
+      -webkit-font-feature-settings: "liga" 0, "clig" 0;
+      font-feature-settings: "liga" 0, "clig" 0;
+    }
+    * {
+      font-variant-ligatures: none !important;
+      -webkit-font-feature-settings: "liga" 0, "clig" 0 !important;
+      font-feature-settings: "liga" 0, "clig" 0 !important;
+    }
+    .s-header, .s-nav, .pane-left, .print-action-bar, .s-section-title { display: none !important; }
+    .status-badge { border: 1px solid currentColor !important; }
+    .s-page       { display: block; padding: 0; max-width: 100%; }
+    .pane-right   { width: 100%; display: block; }
+    .charter-sheet { border: none; box-shadow: none; padding: 0; }
+    /* Keep brand blue in label column when printing */
+    .doc-cell.label-col { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .doc-row:hover .doc-cell { background: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER — brand guide markup -->
+<header class="s-header">
+  <div class="s-header-left">
+    <div class="s-logo-box">
+      <span class="s-logo-text">SCHURTER</span>
+    </div>
+    <h1>Project Charter Generator</h1>
+  </div>
+  <div class="s-header-utils">
+    <button class="s-btn s-btn-header" onclick="exportJSON()">Export JSON</button>
+    <button class="s-btn s-btn-header" onclick="document.getElementById('json_file_input').click()">Import JSON</button>
+    <input type="file" id="json_file_input" style="display:none;" accept=".json" onchange="importJSON(event)">
+  </div>
+</header>
+
+<!-- CHAPTER TABS — brand guide nav markup -->
+<nav class="s-nav" id="chapter_tabs">
+  <a onclick="switchChapter(1)">1. Name &amp; Desc</a>
+  <a onclick="switchChapter(2)">2. Problem &amp; Goal</a>
+  <a onclick="switchChapter(3)">3. Scope Boundaries</a>
+  <a onclick="switchChapter(4)">4. Governance &amp; Dates</a>
+  <a onclick="switchChapter(5)">5. Finance &amp; Risks</a>
+</nav>
+
+<div class="s-page">
+
+  <!-- LEFT PANEL -->
+  <div class="pane-left">
+    <div class="s-section-title">Definition Matrix</div>
+    <div class="s-card">
+
+      <!-- CHAPTER 1 -->
+      <div class="chapter-block" id="ch_block_1">
+        <div class="s-form-group">
+          <label class="s-label">Project Name <span class="req">*</span></label>
+          <input type="text" id="p_name" class="s-input" placeholder="e.g., USL 0603 Automatic Assembly Line" oninput="syncToView()">
+        </div>
+        <div class="s-form-group s-row">
+          <div>
+            <label class="s-label">Document Date <span class="req">*</span></label>
+            <input type="date" id="p_doc_date" class="s-input" onchange="syncToView()">
+          </div>
+          <div>
+            <label class="s-label">Version <span class="req">*</span></label>
+            <input type="text" id="p_doc_version" class="s-input" value="1.0" placeholder="e.g., 1.0" oninput="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Short Description <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_desc" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 2 -->
+      <div class="chapter-block" id="ch_block_2">
+        <div class="s-form-group">
+          <label class="s-label">Problem Statement / Business Case <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_problem" class="rich-textarea" contenteditable="true" oninput="validateInput('problem', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_problem">✕ <b>Vagueness Warning:</b> Avoid abstractions like 'optimize processes'. State specific costs, bottlenecks, or defect levels.</div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Measurable Objective / Target (S.M.A.R.T. KPI) <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_objective" class="rich-textarea" contenteditable="true" oninput="validateInput('objective', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_objective">✕ <b>Unmeasurable Criteria:</b> Management requires concrete metric indicators (%, CHF, or hard deadlines).</div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 3 -->
+      <div class="chapter-block" id="ch_block_3">
+        <div class="s-form-group">
+          <label class="s-label">IN Scope <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_in_scope" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Explicitly OUT of Scope <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_out_scope" class="rich-textarea" contenteditable="true" oninput="validateInput('scope', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_scope">✕ <b>Boundary Gap:</b> Explicit out-of-scope definition must be signed off to prevent scope creep.</div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 4 -->
+      <div class="chapter-block" id="ch_block_4">
+        <div class="s-form-group s-row">
+          <div>
+            <label class="s-label">Project Sponsor <span class="req">*</span></label>
+            <input type="text" id="p_sponsor" class="s-input" placeholder="Owner Role" oninput="syncToView()">
+          </div>
+          <div>
+            <label class="s-label">Project Lead <span class="req">*</span></label>
+            <input type="text" id="p_lead" class="s-input" placeholder="Name" oninput="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Steering Committee (SteerCo) <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_steerco" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Core Team Resources <span class="req">*</span></label>
+          <input type="text" id="p_team" class="s-input" placeholder="Departments / Functions" oninput="syncToView()">
+        </div>
+        <div class="s-form-group s-row">
+          <div>
+            <label class="s-label">Start Date <span class="req">*</span></label>
+            <input type="date" id="p_start" class="s-input" onchange="syncToView()">
+          </div>
+          <div>
+            <label class="s-label">End Date <span class="req">*</span></label>
+            <input type="date" id="p_end" class="s-input" onchange="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Key Milestones <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_milestones" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAPTER 5 -->
+      <div class="chapter-block" id="ch_block_5">
+        <div class="s-form-group s-row">
+          <div>
+            <label class="s-label">Financial Budget <span class="req">*</span></label>
+            <input type="text" id="p_budget" class="s-input" placeholder="e.g., 50'000 CHF" oninput="syncToView()">
+          </div>
+          <div>
+            <label class="s-label">Internal Effort Allocation</label>
+            <input type="text" id="p_internal" class="s-input" placeholder="e.g., 0.3 FTE" oninput="syncToView()">
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Top Risks &amp; Countermeasures <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_risks" class="rich-textarea" contenteditable="true" oninput="syncToView()"></div>
+          </div>
+        </div>
+        <div class="s-form-group">
+          <label class="s-label">Success Criteria / Definition of Done <span class="req">*</span></label>
+          <div class="editor-container">
+            <div class="editor-toolbar">
+              <button class="editor-btn" onclick="execCmd('bold')"><b>B</b></button>
+              <button class="editor-btn" onclick="execCmd('italic')"><i>I</i></button>
+              <button class="editor-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+            </div>
+            <div id="p_success" class="rich-textarea" contenteditable="true" oninput="validateInput('success', this.innerHTML)"></div>
+          </div>
+          <div class="s-alert-error" id="val_success">✕ <b>Binary Check required:</b> Criteria must be verifiable milestones (e.g. 'CE Mark certified', not 'Users are happy').</div>
+        </div>
+      </div>
+
+      <!-- WIZARD NAV — brand guide button spec -->
+      <div class="wizard-actions">
+        <button class="s-btn s-btn-secondary" id="btn_back" onclick="navigateStep(-1)" disabled>← Back</button>
+        <button class="s-btn s-btn-primary"   id="btn_next" onclick="navigateStep(1)">Next →</button>
+      </div>
+
+    </div><!-- /s-card -->
+  </div><!-- /pane-left -->
+
+  <!-- RIGHT PANEL — PREVIEW -->
+  <div class="pane-right">
+    <div class="pane-right-sticky">
+      <div class="s-section-title">Leadership Document View</div>
+      <div class="charter-sheet">
+
+        <div class="charter-header">
+          <h2 id="view_title">
+            <span class="charter-prefix-light">Project Charter</span>
+            <span class="title-divider">|</span>
+          </h2>
+          <div class="meta">
+            <span>Date: <strong id="view_doc_date">—</strong></span>
+            <span class="meta-sep">·</span>
+            <span>Version: <strong id="view_doc_version">—</strong></span>
+            <span class="meta-sep">·</span>
+            <span id="statusBadge" class="status-badge is-approved" onclick="toggleStatusDropdown(event)">
+              <span id="statusLabel">Approved</span>
+              <span class="badge-arrow">▾</span>
+              <div id="statusDropdown" class="status-dropdown">
+                <div class="status-option opt-approved" onclick="setStatus('approved', event)">
+                  <span class="opt-dot"></span>Approved
+                </div>
+                <div class="status-option opt-draft" onclick="setStatus('draft', event)">
+                  <span class="opt-dot"></span>Draft
+                </div>
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <!-- Brand guide: .s-table structure applied as semantic table -->
+        <table class="doc-table">
+          <tbody>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Description</td>
+              <td class="doc-cell value-col" id="view_desc"><span class="placeholder">Fill in the definition matrix on the left…</span></td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Business Case</td>
+              <td class="doc-cell value-col" id="view_problem">—</td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Target Objective</td>
+              <td class="doc-cell value-col" id="view_objective">—</td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">In Scope</td>
+              <td class="doc-cell value-col" id="view_in_scope">—</td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Out of Scope</td>
+              <td class="doc-cell value-col" id="view_out_scope">—</td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Governance</td>
+              <td class="doc-cell value-col">
+                <strong>Sponsor:</strong> <span id="view_sponsor">—</span><br>
+                <strong>Project Lead:</strong> <span id="view_lead">—</span><br>
+                <strong>SteerCo:</strong> <span id="view_steerco">—</span><br>
+                <strong>Resources:</strong> <span id="view_team">—</span>
+              </td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Timeline</td>
+              <td class="doc-cell value-col">
+                <strong>Duration:</strong> <span id="view_start">—</span> → <span id="view_end">—</span>
+                <div style="margin-top:8px;"><strong>Milestones:</strong></div>
+                <div id="view_milestones">—</div>
+              </td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Budget</td>
+              <td class="doc-cell value-col">
+                <strong>Finances:</strong> <span id="view_budget">—</span><br>
+                <strong>Internal:</strong> <span id="view_internal">—</span>
+              </td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Risk Matrix</td>
+              <td class="doc-cell value-col" id="view_risks">—</td>
+            </tr>
+            <tr class="doc-row">
+              <td class="doc-cell label-col">Success Metrics</td>
+              <td class="doc-cell value-col" id="view_success">—</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div><!-- /charter-sheet -->
+      <div class="print-action-bar">
+        <button class="s-btn s-btn-primary" onclick="window.print()">Export / Save as PDF</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /s-page -->
+
+<script>
+  'use strict';
+
+  // =========================================================
+  // FIELD MAP — single source of truth
+  // =========================================================
+  const FIELDS = [
+    { id: 'p_name',        json: 'projectName',       type: 'input' },
+    { id: 'p_doc_date',    json: 'documentDate',      type: 'input' },
+    { id: 'p_doc_version', json: 'documentVersion',   type: 'input' },
+    { id: 'p_desc',        json: 'description',       type: 'rich'  },
+    { id: 'p_problem',     json: 'problemStatement',  type: 'rich'  },
+    { id: 'p_objective',   json: 'objective',         type: 'rich'  },
+    { id: 'p_in_scope',    json: 'inScope',           type: 'rich'  },
+    { id: 'p_out_scope',   json: 'outScope',          type: 'rich'  },
+    { id: 'p_sponsor',     json: 'sponsor',           type: 'input' },
+    { id: 'p_lead',        json: 'projectLead',       type: 'input' },
+    { id: 'p_steerco',     json: 'steeringCommittee', type: 'rich'  },
+    { id: 'p_team',        json: 'coreTeam',          type: 'input' },
+    { id: 'p_start',       json: 'startDate',         type: 'input' },
+    { id: 'p_end',         json: 'endDate',           type: 'input' },
+    { id: 'p_milestones',  json: 'milestones',        type: 'rich'  },
+    { id: 'p_budget',      json: 'budget',            type: 'input' },
+    { id: 'p_internal',    json: 'internalEffort',    type: 'input' },
+    { id: 'p_risks',       json: 'risks',             type: 'rich'  },
+    { id: 'p_success',     json: 'successCriteria',   type: 'rich'  },
+  ];
+
+  // =========================================================
+  // SANITIZER — strips Word / ProseMirror / Office artefacts
+  // =========================================================
+  function sanitizeHTML(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('o\\:p, o\\:smarttagtype').forEach(el => el.remove());
+
+    const ALLOWED = new Set(['b','strong','i','em','u','ul','ol','li','p','br','span','div']);
+
+    function clean(node) {
+      if (node.nodeType === Node.TEXT_NODE) return;
+      if (node.nodeType !== Node.ELEMENT_NODE) { node.parentNode?.removeChild(node); return; }
+
+      const tag = node.tagName.toLowerCase();
+      if (!ALLOWED.has(tag)) {
+        const parent = node.parentNode;
+        while (node.firstChild) parent.insertBefore(node.firstChild, node);
+        parent.removeChild(node);
+        return;
+      }
+      // Strip all attributes
+      [...node.attributes].forEach(a => node.removeAttribute(a.name));
+      [...node.childNodes].forEach(clean);
+    }
+
+    [...doc.body.childNodes].forEach(clean);
+
+    // Unwrap single <p> inside <li>
+    doc.querySelectorAll('li > p:only-child').forEach(p => {
+      const li = p.parentNode;
+      while (p.firstChild) li.insertBefore(p.firstChild, p);
+      li.removeChild(p);
+    });
+
+    return doc.body.innerHTML.trim();
+  }
+
+  // =========================================================
+  // CHAPTER WIZARD
+  // =========================================================
+  let activeChapter = 1;
+  const MAX_CHAPTERS = 5;
+
+  function switchChapter(id) {
+    activeChapter = id;
+    document.querySelectorAll('#chapter_tabs a').forEach((t, i) => t.classList.toggle('active', i + 1 === id));
+    document.querySelectorAll('.chapter-block').forEach((b, i) => b.classList.toggle('active', i + 1 === id));
+    document.getElementById('btn_back').disabled = (id === 1);
+    document.getElementById('btn_next').innerText = id === MAX_CHAPTERS ? 'Finish' : 'Next →';
+  }
+
+  function navigateStep(dir) {
+    const t = activeChapter + dir;
+    if (t >= 1 && t <= MAX_CHAPTERS) switchChapter(t);
+  }
+
+  // =========================================================
+  // RICH TEXT
+  // =========================================================
+  function execCmd(cmd) {
+    document.execCommand(cmd, false, null);
+    syncToView();
+  }
+
+  // =========================================================
+  // VALIDATION
+  // =========================================================
+  const FLUFF = ['optimize','process improvement','make better','improve efficiency','enhance quality'];
+
+  function validateInput(field, html) {
+    const text = html.replace(/<[^>]*>/g, '').trim();
+    let warn = text.length > 0 && text.length < 15;
+    if (field === 'objective') {
+      const hasFluff   = FLUFF.some(p => text.toLowerCase().includes(p));
+      const hasMetrics = /\d/.test(text);
+      if (hasFluff && !hasMetrics && text.length > 0) warn = true;
+    }
+    if (field === 'scope' && text.length > 0 && text.length < 10) warn = true;
+    document.getElementById(`val_${field}`).style.display = warn ? 'block' : 'none';
+    syncToView();
+  }
+
+  // =========================================================
+  // SYNC → PREVIEW
+  // =========================================================
+  function isEmpty(v) { return !v || v.replace(/<[^>]*>/g,'').trim() === '' || v === '<br>'; }
+
+  function syncToView() {
+    const name    = document.getElementById('p_name').value.trim();
+    const date    = document.getElementById('p_doc_date').value;
+    const version = document.getElementById('p_doc_version').value.trim();
+
+    document.getElementById('view_title').innerHTML = name
+      ? `<span class="charter-prefix-light">Project Charter</span><span class="title-divider">|</span> ${name}`
+      : `<span class="charter-prefix-light">Project Charter</span><span class="title-divider">|</span>`;
+
+    document.getElementById('view_doc_date').innerText    = date    || '—';
+    document.getElementById('view_doc_version').innerText = version || '—';
+
+    const desc = document.getElementById('p_desc').innerHTML;
+    document.getElementById('view_desc').innerHTML = isEmpty(desc)
+      ? '<span class="placeholder">Fill in the definition matrix on the left…</span>'
+      : desc;
+
+    const richMap = { p_problem:'view_problem', p_objective:'view_objective', p_in_scope:'view_in_scope',
+                      p_out_scope:'view_out_scope', p_steerco:'view_steerco', p_milestones:'view_milestones',
+                      p_risks:'view_risks', p_success:'view_success' };
+    Object.entries(richMap).forEach(([i, v]) => {
+      const val = document.getElementById(i).innerHTML;
+      document.getElementById(v).innerHTML = isEmpty(val) ? '—' : val;
+    });
+
+    const textMap = { p_sponsor:'view_sponsor', p_lead:'view_lead', p_team:'view_team',
+                      p_start:'view_start', p_end:'view_end', p_budget:'view_budget', p_internal:'view_internal' };
+    Object.entries(textMap).forEach(([i, v]) => {
+      document.getElementById(v).innerText = document.getElementById(i).value.trim() || '—';
+    });
+  }
+
+  // =========================================================
+  // STATUS BADGE
+  // =========================================================
+  let currentStatus = 'approved';
+
+  function toggleStatusDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('statusDropdown').classList.toggle('open');
+  }
+  function setStatus(value, e) {
+    e.stopPropagation();
+    currentStatus = value;
+    const badge    = document.getElementById('statusBadge');
+    const label    = document.getElementById('statusLabel');
+    const dropdown = document.getElementById('statusDropdown');
+    if (value === 'approved') {
+      badge.className = 'status-badge is-approved';
+      label.textContent = 'Approved';
+    } else {
+      badge.className = 'status-badge is-draft';
+      label.textContent = 'Draft';
+    }
+    dropdown.classList.remove('open');
+  }
+  // Close dropdown when clicking elsewhere
+  document.addEventListener('click', () => {
+    document.getElementById('statusDropdown')?.classList.remove('open');
+  });
+
+  // =========================================================
+  // EXPORT
+  // =========================================================
+  function exportJSON() {
+    const data = { authorizationStatus: currentStatus };
+    FIELDS.forEach(f => {
+      const el = document.getElementById(f.id);
+      data[f.json] = f.type === 'rich' ? el.innerHTML : el.value;
+    });
+    const a    = document.createElement('a');
+    const name = (data.projectName || 'Draft').replace(/\s+/g,'_');
+    a.download = `Project_Charter_${name}_${new Date().toISOString().substring(0,10)}.json`;
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // =========================================================
+  // IMPORT  (with sanitization)
+  // =========================================================
+  function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const m = JSON.parse(e.target.result);
+        FIELDS.forEach(f => {
+          if (m[f.json] === undefined) return;
+          const el  = document.getElementById(f.id);
+          const val = f.type === 'rich' ? sanitizeHTML(m[f.json]) : m[f.json];
+          if (f.type === 'rich') el.innerHTML = val; else el.value = val;
+        });
+        if (m.authorizationStatus !== undefined) {
+          setStatus(m.authorizationStatus, { stopPropagation: () => {} });
+        }
+        ['problem','objective','scope','success'].forEach(field => {
+          const id = field === 'scope' ? 'p_out_scope' : `p_${field}`;
+          validateInput(field, document.getElementById(id).innerHTML);
+        });
+        switchChapter(1);
+        syncToView();
+      } catch { alert('Error parsing JSON. Please use a valid Project Charter export file.'); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // =========================================================
+  // INIT
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    const d = document.getElementById('p_doc_date');
+    if (!d.value) d.value = new Date().toISOString().split('T')[0];
+    setStatus('approved', { stopPropagation: () => {} });
+    document.querySelectorAll('.rich-textarea').forEach(el => {
+      el.addEventListener('paste', e => {
+        e.preventDefault();
+        document.execCommand('insertText', false, (e.clipboardData || e.originalEvent.clipboardData).getData('text/plain'));
+      });
+    });
+    switchChapter(1);
+    syncToView();
+  });
+</script>
+</body>
+</html>
